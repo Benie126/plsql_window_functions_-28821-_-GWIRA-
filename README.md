@@ -24,7 +24,7 @@ The company struggles to identify top-selling products, track customer purchases
 **Sales**(`sale_id` PK, `customer_id` FK, `product_id` FK, `sale_date`, `quantity`, `total_amount`)  
 
 ## ER Diagram
-![ER Diagram](Diagrams/ER_DIAGRAM.png)
+![ER Diagram](Diagrams/ER DIAGRAM.png)
 
 # Join Queries
 
