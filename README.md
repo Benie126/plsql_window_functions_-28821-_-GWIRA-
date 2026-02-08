@@ -83,6 +83,8 @@ It helps identify both inactive customers and unsold products for strategic plan
 This join reveals patterns or similarities among customers or transactions. 
 It supports targeted marketing, regional analysis, and trend identification.
 
+## WINDOW FUNCTIONS
+
 ## Ranking Functions
 
 **Purpose:** Identify top-performing customers and products based on revenue.
