@@ -1,0 +1,170 @@
+ALL SQL SCRIPTS 
+
+CREATING TABLES
+
+1.CREATE TABLE Customers (
+    customer_id NUMBER PRIMARY KEY,
+    customer_name VARCHAR2(100),
+    region VARCHAR2(50));
+
+2.CREATE TABLE Products (
+    product_id NUMBER PRIMARY KEY,
+    product_name VARCHAR2(100),
+    category VARCHAR2(50),
+    price NUMBER);
+
+3.CREATE TABLE Sales (
+    sale_id NUMBER PRIMARY KEY,
+    customer_id NUMBER,
+    product_id NUMBER,
+    sale_date DATE,
+    quantity NUMBER,
+    total_amount NUMBER,
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
+    FOREIGN KEY (product_id) REFERENCES Products(product_id));
+
+INSERTING VALUES 
+
+INSERT INTO Customers VALUES (1,'Alice','Kigali');
+INSERT INTO Customers VALUES (2,'Ben','Musanze');
+INSERT INTO Customers VALUES (3,'Claire','Kigali');
+INSERT INTO Customers VALUES (4,'David','Huye');
+
+
+INSERT INTO Products VALUES (101,'Laptop','Electronics',800);
+INSERT INTO Products VALUES (102,'Phone','Electronics',500);
+INSERT INTO Products VALUES (103,'Headphones','Accessories',100);
+INSERT INTO Products VALUES (104,'Tablet','Electronics',600);
+
+
+INSERT INTO Sales VALUES (1,1,101,DATE '2025-01-10',1,800);
+INSERT INTO Sales VALUES (2,2,102,DATE '2025-02-05',2,1000);
+INSERT INTO Sales VALUES (3,1,103,DATE '2025-02-20',3,300);
+INSERT INTO Sales VALUES (4,3,101,DATE '2025-03-15',1,800);
+
+
+SQL COMMANDS
+
+INNER JOIN
+
+SELECT c.customer_name, p.product_name, s.total_amount
+FROM Sales s
+INNER JOIN Customers c ON s.customer_id = c.customer_id
+INNER JOIN Products p ON s.product_id = p.product_id;
+
+
+LEFT JOIN
+
+SELECT c.customer_name, s.sale_id
+FROM Customers c
+LEFT JOIN Sales s ON c.customer_id = s.customer_id;
+
+
+RIGHT JOIN 
+
+SELECT p.product_name, s.sale_id
+FROM Sales s
+RIGHT JOIN Products p ON s.product_id = p.product_id;
+
+
+FULL OUTER JOIN 
+
+SELECT c.customer_name, p.product_name
+FROM Customers c
+FULL OUTER JOIN Sales s ON c.customer_id = s.customer_id
+FULL OUTER JOIN Products p ON s.product_id = p.product_id;
+
+
+SELF JOIN 
+
+SELECT c1.customer_name, c2.customer_name, c1.region
+FROM Customers c1
+JOIN Customers c2
+ON c1.region = c2.region
+AND c1.customer_id <> c2.customer_id;
+
+
+WINDOW FUNCTIONS IMPLEMENTATION
+
+RANKING FUNCTION (TOP CUSTOMERS BY REVENUE) 
+
+SELECT customer_name,
+       SUM(total_amount) AS total_revenue,
+       ROW_NUMBER() OVER (ORDER BY SUM(total_amount) DESC) AS row_num,
+       RANK() OVER (ORDER BY SUM(total_amount) DESC) AS rank_num,
+       DENSE_RANK() OVER (ORDER BY SUM(total_amount) DESC) AS dense_rank_num,
+       PERCENT_RANK() OVER (ORDER BY SUM(total_amount) DESC) AS percent_rank_num
+FROM Sales s
+JOIN Customers c ON s.customer_id = c.customer_id
+GROUP BY customer_name
+ORDER BY total_revenue DESC;
+
+
+RANKING FUNCTION (TOP PRODUCTS BY REVENUE)
+
+SELECT product_name,
+       SUM(total_amount) AS total_revenue,
+       ROW_NUMBER() OVER (ORDER BY SUM(total_amount) DESC) AS row_num,
+       RANK() OVER (ORDER BY SUM(total_amount) DESC) AS rank_num,
+       DENSE_RANK() OVER (ORDER BY SUM(total_amount) DESC) AS dense_rank_num,
+       PERCENT_RANK() OVER (ORDER BY SUM(total_amount) DESC) AS percent_rank_num
+FROM Sales s
+JOIN Products p ON s.product_id = p.product_id
+GROUP BY product_name
+ORDER BY total_revenue DESC;
+
+
+AGGREGATE WINDOW FUNCTIONS (RUNNING TOTAL OF SALES BY DATE)
+
+SELECT sale_date,
+       SUM(total_amount) OVER (ORDER BY sale_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total
+FROM Sales
+ORDER BY sale_date;
+
+
+AGGREGATE WINDOW FUNCTIONS (3 MONTHS MOVING AVEREAGE USING RANGE FOR TRENDS)
+
+SELECT sale_date,
+       AVG(total_amount) OVER (
+           ORDER BY sale_date
+           RANGE BETWEEN INTERVAL '2' MONTH PRECEDING AND CURRENT ROW
+       ) AS moving_avg_3_months
+FROM Sales
+ORDER BY sale_date;
+
+
+NAVIGATION FUNCTIONS(MONTH TO MONTH GROWTH)
+
+SELECT sale_date,
+       total_amount,
+       LAG(total_amount) OVER (ORDER BY sale_date) AS previous_sale,
+       total_amount - LAG(total_amount) OVER (ORDER BY sale_date) AS sales_change,
+       LEAD(total_amount) OVER (ORDER BY sale_date) AS next_sale
+FROM Sales
+ORDER BY sale_date;
+
+
+DISTRIBUTION FUNCTIONS 
+
+SELECT 
+    customer_id,
+    customer_name,
+    total_spent,
+    NTILE(4) OVER (ORDER BY total_spent DESC) AS quartile,
+    CUME_DIST() OVER (ORDER BY total_spent DESC) AS cum_dist
+FROM (
+    SELECT 
+        c.customer_id,
+        c.customer_name,
+        NVL(SUM(s.total_amount), 0) AS total_spent
+    FROM Customers c
+    LEFT JOIN Sales s ON c.customer_id = s.customer_id
+    GROUP BY c.customer_id, c.customer_name
+) customer_totals
+ORDER BY total_spent DESC;
+                                    
+
+                                      END 
+
+
+
